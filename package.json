@@ -1,0 +1,22 @@
+{
+  "name": "auto-practice-book-a-room",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/p-gintare/auto-practice-book-a-room#readme",
+  "bugs": {
+    "url": "https://github.com/p-gintare/auto-practice-book-a-room/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/p-gintare/auto-practice-book-a-room.git"
+  },
+  "license": "MIT",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {},
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.5.0"
+  }
+}
