@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import dayjs from "dayjs";
 
 // {"roomid":1,"firstname":"","lastname":"","depositpaid":false,"bookingdates":{"checkin":"2026-03-01","checkout":"2026-03-04"},"email":"","phone":""}
 
@@ -34,7 +35,7 @@ test.describe("Validation tests", () => {
             name: "Firstname is too long",
             payload: {
                 ...defaultPayload,
-                firstname:"Na".repeat(10),
+                firstname:"a".repeat(19),
                 },
             expectedErrorMessage: ["size must be between 3 and 18"]
         },
@@ -49,13 +50,16 @@ test.describe("Validation tests", () => {
 
     ].forEach(testCase => {
         test(`${testCase.name} error message is: ${testCase.expectedErrorMessage} with payload: ${testCase.payload}`, async({ page}) => {
-
-            await page.goto("/");
-
-            const linkBookNow = page.locator("#rooms").getByRole("link", {name: "Book now"});
-            await linkBookNow.first().scrollIntoViewIfNeeded();
-            await linkBookNow.first().click();
-
+           // https://automationintesting.online/reservation/1?checkin=2026-03-27&checkout=2026-03-28
+            const today = dayjs(new Date());
+            const tomorrow = dayjs(new Date()).add(1, 'day');
+            await page.goto(`https://automationintesting.online/reservation/1?checkin=${today.format("YYYY-MM-DD")}&checkout=${tomorrow.format("YYYY-MM-DD")}`);
+            // await page.goto("/");
+            //
+            // const linkBookNow = page.locator("#rooms").getByRole("link", {name: "Book now"});
+            // await linkBookNow.first().scrollIntoViewIfNeeded();
+            // await linkBookNow.first().click();
+            //
             const buttonDoReservation = page.locator("#doReservation");
             await buttonDoReservation.scrollIntoViewIfNeeded();
             await buttonDoReservation.click();
@@ -77,7 +81,21 @@ test.describe("Validation tests", () => {
 
             const divMustBetweenAndNot = page.locator(".alert li");
             await expect(divMustBetweenAndNot).toHaveText(testCase.expectedErrorMessage);
-
         });
     });
+[{
+    name: "Missing email address", payload: {...defaultPayload, bookingdates: { checkin: dayjs(new Date()), checkout: dayjs(new Date())}}, expectedErrorMessage: ["address should not be empty"]
+}
+].forEach(testCase => {
+    test(`[API] ${testCase.name}`, async ({request}) => {
+        const response = await request.post("https://automationintesting.online/api/booking", {
+            data: testCase.payload,
+        });
+
+        expect(response.status()).toBe(400);
+        await response.json();
+        // patikrinti error zinutes
+    });
+})
+
 });
