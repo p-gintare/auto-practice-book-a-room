@@ -14,8 +14,14 @@
   "author": "",
   "type": "module",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "setup": "npm install",
+    "test": "npx playwright test",
+    "test:validation": "npx playwright test tests/validation.spec.js --project chromium",
+    "test:smoke": "npx playwright test --grep @smoke --project chromium"
+  },
   "devDependencies": {
+    "@faker-js/faker": "^10.4.0",
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.5.0",
     "dayjs": "^1.11.20"

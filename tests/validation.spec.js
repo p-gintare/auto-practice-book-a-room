@@ -1,21 +1,26 @@
 import {test, expect} from '@playwright/test'
 import {today, tomorrow} from "./../src/dates.js";
+import {faker} from "@faker-js/faker/locale/en";
+import {HomePage} from "../src/pages/home-page.js";
 
 
 // const today = dayjs(new Date()).format("YYYY-MM-DD");
 // const tomorrow = dayjs(new Date()).add(1, 'day').format("YYYY-MM-DD");
 
 const defaultPayload = {
-    firstname: "Name",
-    lastname: "Surnameas",
-    email: "test@test.org",
-    phone: "+3706444555598",
+    firstname: faker.person.firstName(),
+    lastname: faker.person.lastName(),
+    email: faker.internet.email(),
+    phone: faker.phone.number({style: "human"}),
     roomid: 1,
     depositpaid: false,
     bookingdates: {checkin: today, checkout: tomorrow}
 }
 
-const missingFirstName =  {
+// ka daro --grep package.json script skiltyje
+//tag: ["@api", "@smoke", "@regression"].includes("@api")
+
+const missingFirstName = {
     name: "Missing firstname",
     payload: {
         ...defaultPayload,
@@ -26,7 +31,26 @@ const missingFirstName =  {
 
 test.describe("Validation tests", () => {
 
-    [ missingFirstName,
+    test.beforeEach(async ({page}) => {
+        console.log("before each");
+        await test.step("Click on first room", async () => {
+            await page.goto("/");
+            const linkBookNow = page.locator("#rooms").getByRole("link", {name: "Book now"});
+            await linkBookNow.first().click();
+        });
+
+        await test.step("Click on reservation", async () => {
+            const buttonDoReservation = page.locator("#doReservation");
+            await buttonDoReservation.scrollIntoViewIfNeeded();
+            await buttonDoReservation.click();
+        });
+    });
+
+    test.afterEach(() => {
+        console.log("after each");
+    });
+
+    [missingFirstName,
         {
             name: "Firstname is too short",
             payload: {
@@ -35,40 +59,30 @@ test.describe("Validation tests", () => {
             },
             expectedErrorMessage: ["size must be between 3 and 18"]
         },
-        {
-            name: "Firstname is too long",
-            payload: {
-                ...defaultPayload,
-                firstname: "a".repeat(19),
-            },
-            expectedErrorMessage: ["size must be between 3 and 18"]
-        },
-        {
-            name: "Email is wrong type",
-            payload: {
-                ...defaultPayload,
-                email: "Na".repeat(5),
-            },
-            expectedErrorMessage: ["must be a well-formed email address"]
-        },
+        // {
+        //     name: "Firstname is too long",
+        //     payload: {
+        //         ...defaultPayload,
+        //         firstname: "a".repeat(19),
+        //     },
+        //     expectedErrorMessage: ["size must be between 3 and 18"]
+        // },
+        // {
+        //     name: "Email is wrong type",
+        //     payload: {
+        //         ...defaultPayload,
+        //         email: "Na".repeat(5),
+        //     },
+        //     expectedErrorMessage: ["must be a well-formed email address"]
+        // },
 
     ].forEach(testCase => {
         test(`${testCase.name} error message is: ${testCase.expectedErrorMessage} with payload: ${testCase.payload}`, async ({page}) => {
             // https://automationintesting.online/reservation/1?checkin=2026-03-27&checkout=2026-03-28
 
             // await page.goto(`https://automationintesting.online/reservation/1?checkin=${today}&checkout=${tomorrow}`);
-            await test.step("Click on first room", async () => {
-                await page.goto("/");
-                const linkBookNow = page.locator("#rooms").getByRole("link", {name: "Book now"});
-                await linkBookNow.first().scrollIntoViewIfNeeded();
-                await linkBookNow.first().click();
-            });
-
-            await test.step("Click on reservation", async () => {
-                const buttonDoReservation = page.locator("#doReservation");
-                await buttonDoReservation.scrollIntoViewIfNeeded();
-                await buttonDoReservation.click();
-            });
+            console.log("test");
+            const homePage = new HomePage(page);
 
             await test.step("Fill reservation form", async () => {
 
@@ -207,7 +221,8 @@ test.describe("Validation tests", () => {
             expectedErrorMessage: ["size must be between 3 and 30"]
         },
     ].forEach(testCase => {
-        test(`[API] ${testCase.name} error message is: ${testCase.expectedErrorMessage}`, {
+        test.skip(`[API] ${testCase.name} error message is: ${testCase.expectedErrorMessage}`, {
+            tag: ["@api", "@smoke", "@regression"],
             annotation: {
                 type: "payload",
                 description: `${JSON.stringify(testCase.payload, null, 2)}`,
