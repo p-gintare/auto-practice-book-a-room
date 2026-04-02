@@ -18,7 +18,8 @@
     "setup": "npm install",
     "test": "npx playwright test",
     "test:validation": "npx playwright test tests/validation.spec.js --project chromium",
-    "test:smoke": "npx playwright test --grep @smoke --project chromium"
+    "test:smoke": "npx playwright test --grep @smoke --project chromium",
+    "test:runner": "npx playwright test --grep @runner --project chromium"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.4.0",
