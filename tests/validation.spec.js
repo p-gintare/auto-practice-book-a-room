@@ -7,51 +7,35 @@ import {
     firstnameIsTooShort,
     firstnameIsTooLong
 } from "../src/test-data/validation-test-data.js";
-import {RoomPage} from "../src/pages/room-page.js";
+import {RoomPage} from "../src/pages/room/room-page.js";
 import {defaultPayload} from "../src/test-data/validation-test-data.js";
 
 // ka daro --grep package.json script skiltyje
 //tag: ["@api", "@smoke", "@regression"].includes("@api")
 
 
-    test.describe("Validation tests", () => {
-
+test.describe("Validation tests", () => {
+    let roomPage;
+    test.describe("UI part", () => {
         test.beforeEach(async ({page}) => {
             // https://automationintesting.online/reservation/1?checkin=2026-03-27&checkout=2026-03-28
             // await page.goto(`https://automationintesting.online/reservation/1?checkin=${today}&checkout=${tomorrow}`);
             const homePage = new HomePage(page);
-            const roomPage = new RoomPage(page);
+            roomPage = new RoomPage(page);
 
             await homePage.goto();
             await homePage.openRoom(0);
-            await roomPage.clickReservation();
+            await roomPage.reservationForm.clickCalendarReservation();
         });
 
         test.afterEach(() => {
         });
 
-        [firstnameIsMissing].forEach(testCase => {
+        [firstnameIsMissing, firstnameIsTooShort].forEach(testCase => {
             test(`${testCase.name} error message is: ${testCase.expectedErrorMessage} with payload: ${testCase.payload}`, async ({page}) => {
 
-                await test.step("Fill reservation form", async () => {
-
-                    await test.step(`Fill first name with: ${testCase.payload.firstname}`, async () => {
-                        const inputFirstname = page.locator("[name = 'firstname']");
-                        await inputFirstname.fill(testCase.payload.firstname);
-                    });
-
-                    const inputLastname = page.locator("[name = 'lastname']");
-                    await inputLastname.fill(testCase.payload.lastname);
-
-                    const inputEmail = page.locator("[name = 'email']");
-                    await inputEmail.fill(testCase.payload.email);
-
-                    const inputPhone = page.locator("[name = 'phone']");
-                    await inputPhone.fill(testCase.payload.phone);
-
-                    const buttonReserveNow = page.getByRole("button", {name: "Reserve Now"});
-                    await buttonReserveNow.click();
-                });
+                await roomPage.reservationForm.fillForm(testCase.payload);
+                await roomPage.reservationForm.fillPhone(testCase.payload.phone);
 
                 await test.step(`Expect booking returns error ${testCase.expectedErrorMessage.join(", ")}`, async () => {
                     const actualErrorList = page.locator(".alert li");
@@ -60,10 +44,11 @@ import {defaultPayload} from "../src/test-data/validation-test-data.js";
 
                     await expect(actualErrorList).toContainText(testCase.expectedErrorMessage);
                 });
-
             });
         });
+    });
 
+    test.describe("API part", () => {
         [firstnameIsMissing, firstnameIsTooShort, firstnameIsTooLong, emailIsWrongType,
             {
                 name: "0 nights booking",
@@ -178,7 +163,7 @@ import {defaultPayload} from "../src/test-data/validation-test-data.js";
 
                     try {
                         const json = await response.json();
-                        actualErrors = json.errors ?? (json.error ? [json.error]: []);
+                        actualErrors = json.errors ?? (json.error ? [json.error] : []);
                     } catch (e) {
                         actualErrors = [await response.text()];
                     }
@@ -188,6 +173,7 @@ import {defaultPayload} from "../src/test-data/validation-test-data.js";
             });
         });
     });
+});
 
 /** bug'ai:
  * - email be domeno

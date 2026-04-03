@@ -4,7 +4,6 @@ import {BasicPage} from "./basic-page.js";
 export class HomePage extends BasicPage {
     constructor(page) {
         super(page, "/");
-
         this.buttonBookNow = this.page.locator("#rooms").getByRole("link", {name: "Book now"});
     }
 

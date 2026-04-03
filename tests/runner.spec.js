@@ -1,4 +1,4 @@
-import {test, expect} from "@playwright/test";
+import {test} from "@playwright/test";
 
 test.describe("playwright runner work rules", {tag: "@runner"},() => {
     test.describe("test playwright runner", () => {
@@ -80,6 +80,24 @@ test.describe("playwright runner work rules", {tag: "@runner"},() => {
 
         test("test 1", () => {console.log("test")});
         test("test 2", () => {console.log("test")});
+        test("test 3", () => {console.log("test")});
+        test("test 4", () => {console.log("test")});
+        test("test 5", () => {console.log("test")});
+    });
+
+    test.describe("test playwright runner, with different describes", () => {
+        test.beforeAll(() => { console.log("before all")});
+        test.describe("describe 1", () => {
+            test.beforeEach(() => { console.log("before each describe 1");});
+            test.afterEach(() => { console.log("after each describe 1")});
+
+            test("test 1", () => {console.log("test")});
+            test("test 2", () => {console.log("test")});
+        });
+        test.beforeEach(() => { console.log("before each");});
+        test.afterEach(() => { console.log("after each")});
+        test.afterAll(() => { console.log("after all")});
+
         test("test 3", () => {console.log("test")});
         test("test 4", () => {console.log("test")});
         test("test 5", () => {console.log("test")});
