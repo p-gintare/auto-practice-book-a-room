@@ -3,19 +3,12 @@ import {test} from "@playwright/test";
 export class ReservationFormComponent {
     constructor(page) {
         this.page = page;
-        this.buttonDoReservation = this.page.locator("#doReservation");
+
         this.inputFirstname = this.page.locator("[name = 'firstname']");
         this.inputLastname = this.page.locator("[name = 'lastname']");
         this.inputPhone = page.locator("[name = 'phone']");
         this.inputEmail = page.locator("[name = 'email']");
         this.buttonReserveNow = page.getByRole("button", {name: "Reserve Now"});
-    }
-
-    async clickCalendarReservation() {
-        await test.step("Click on calendar reservation", async () => {
-            await this.buttonDoReservation.scrollIntoViewIfNeeded();
-            await this.buttonDoReservation.click();
-        });
     }
 
     async fillForm({firstname, lastname, phone, email}) {
@@ -25,7 +18,7 @@ export class ReservationFormComponent {
             await this.fillPhone(phone);
             await this.fillEmail(email);
             await this.clickReservationButton();
-        })
+        });
     }
 
     async fillFirstname(firstname) {

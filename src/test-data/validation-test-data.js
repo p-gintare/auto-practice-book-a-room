@@ -1,11 +1,8 @@
 import {today, tomorrow} from "../dates.js";
-import {faker} from "@faker-js/faker/locale/en";
+import { personalDetails} from "./personal-details.js";
 
 export const defaultPayload = {
-    firstname: faker.person.firstName(),
-    lastname: faker.person.lastName(),
-    email: faker.internet.email(),
-    phone: faker.phone.number({style: "human"}),
+    ...personalDetails,
     roomid: 1,
     depositpaid: false,
     bookingdates: {checkin: today, checkout: tomorrow }

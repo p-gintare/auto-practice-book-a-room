@@ -25,7 +25,7 @@ test.describe("Validation tests", () => {
 
             await homePage.goto();
             await homePage.openRoom(0);
-            await roomPage.reservationForm.clickCalendarReservation();
+            await roomPage.reservationForm.calendar.clickReservation();
         });
 
         test.afterEach(() => {
