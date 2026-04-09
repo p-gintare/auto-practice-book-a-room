@@ -2,8 +2,8 @@ import {expect, test} from "@playwright/test";
 import {HomePage} from "../src/pages/home-page.js";
 import {RoomPage} from "../src/pages/room/room-page.js";
 import {personalDetails} from "../src/test-data/personal-details.js";
-import dayjs from "dayjs";
-import {DATE_FORMAT} from "../src/utils/date-utils.js";
+import {formatDate, getNextAvailableWeek, nextWeek} from "../src/utils/date-utils.js";
+import {getRoomInformation} from "../src/api/room-api.js";
 
 test("User can book a room for a week", {annotation: {type: 'issue', description: 'url to bug'}}, async ({page}) => {
     const homePage = new HomePage(page);
@@ -12,33 +12,31 @@ test("User can book a room for a week", {annotation: {type: 'issue', description
     await homePage.goto();
     await homePage.openFirstRoom();
 
-    const checkin = dayjs().add(1, 'days');
-    const checkout = dayjs().add(3, 'days');
-
-
-    await roomPage.reservationForm.calendar.selectDates(checkin.get('date').toString().padStart(2, "0"), checkout.get('date').toString().padStart(2, "0"));
+    await roomPage.reservationForm.calendar.selectDates(nextWeek.start, nextWeek.end);
     await roomPage.reservationForm.calendar.clickReservation();
     await roomPage.reservationForm.personalDetails.fillForm(personalDetails);
+    // expect tipas 1
+    expect(await roomPage.reservationForm.confirmation.isBookingConfirmed("Booking Confirmed", nextWeek.start, nextWeek.end)).toBe(true);
+    // expect tipas 2
     await expect(roomPage.reservationForm.confirmation.title).toHaveText("Booking Confirmed");
-    await expect(roomPage.reservationForm.confirmation.dates).toHaveText(`${checkin.format(DATE_FORMAT)} - ${checkout.format(DATE_FORMAT)}`);
+    await expect(roomPage.reservationForm.confirmation.dates).toHaveText(`${formatDate(nextWeek.start)} - ${formatDate(nextWeek.end)}`);
+    // expect tipas 3
+    await roomPage.reservationForm.confirmation.expectBookingIsConfirmed("Booking Confirmed", nextWeek.start, nextWeek.end)
+});
 
-    // await page.waitForTimeout(1_000);
-    // const buttonLink = page.getByRole("button", {name: "12"});
-    // const buttonLink2 = page.getByRole("button", {name: "17"});
-    // const parentRow = buttonLink.locator("../../..");
-    // const selectedDateElement = parentRow.locator(".rbc-event-content", {hasText: "Selected"})
-    // // await buttonLink.dragTo(buttonLink2);
-    // // await buttonLink.click();
-    // await buttonLink.hover();
-    // await page.mouse.down();
-    // //
-    // // // await page.waitForTimeout(3_000);
-    // // await new Promise(resolve => setTimeout(resolve, 300));
-    // const box = await buttonLink2.boundingBox();
-    // await page.mouse.move(box.x, box.y);
-    // await buttonLink2.hover();
-    // // await buttonLink2.hover();
-    // await page.mouse.up();
-    // // await page.waitForTimeout(3_000);
-    // await expect(selectedDateElement).toBeEnabled({timeout: 2_000});
+test("Book next available week", async ({page}) => {
+    const homePage = new HomePage(page);
+    const roomPage = new RoomPage(page);
+
+    await homePage.goto();
+    await homePage.openRoom(2);
+    const url = page.url();
+    const roomId = url.split("?")[0].split("/").pop();
+    const roomInformation = await getRoomInformation(roomId);
+    const availableWeek = await getNextAvailableWeek(roomInformation);
+
+    await roomPage.reservationForm.calendar.selectDates(availableWeek.start, availableWeek.end);
+    await roomPage.reservationForm.calendar.clickReservation();
+    await roomPage.reservationForm.personalDetails.fillForm(personalDetails);
+    await roomPage.reservationForm.confirmation.expectBookingIsConfirmed("Booking Confirmed", availableWeek.start, availableWeek.end);
 });
