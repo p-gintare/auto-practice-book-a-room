@@ -2,19 +2,25 @@ import {expect, test} from "@playwright/test";
 import {HomePage} from "../src/pages/home-page.js";
 import {RoomPage} from "../src/pages/room/room-page.js";
 import {personalDetails} from "../src/test-data/personal-details.js";
+import dayjs from "dayjs";
+import {DATE_FORMAT} from "../src/utils/date-utils.js";
 
-test("User can book a room for a week", async ({page}) => {
+test("User can book a room for a week", {annotation: {type: 'issue', description: 'url to bug'}}, async ({page}) => {
     const homePage = new HomePage(page);
     const roomPage = new RoomPage(page);
 
     await homePage.goto();
     await homePage.openFirstRoom();
 
-    await roomPage.reservationForm.calendar.selectDates("12", "17");
+    const checkin = dayjs().add(1, 'days');
+    const checkout = dayjs().add(3, 'days');
+
+
+    await roomPage.reservationForm.calendar.selectDates(checkin.get('date').toString().padStart(2, "0"), checkout.get('date').toString().padStart(2, "0"));
     await roomPage.reservationForm.calendar.clickReservation();
     await roomPage.reservationForm.personalDetails.fillForm(personalDetails);
     await expect(roomPage.reservationForm.confirmation.title).toHaveText("Booking Confirmed");
-    await expect(roomPage.reservationForm.confirmation.dates).toHaveText("2026-04-12 - 2026-04-17");
+    await expect(roomPage.reservationForm.confirmation.dates).toHaveText(`${checkin.format(DATE_FORMAT)} - ${checkout.format(DATE_FORMAT)}`);
 
     // await page.waitForTimeout(1_000);
     // const buttonLink = page.getByRole("button", {name: "12"});

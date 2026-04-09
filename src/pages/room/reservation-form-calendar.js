@@ -4,6 +4,7 @@ export class ReservationFormCalendar {
     constructor(page) {
         this.page = page;
         this.buttonDoReservation = this.page.locator("#doReservation");
+        this.bookingCardElement = this.page.locator(".booking-card");
     }
 
     async clickReservation() {
@@ -14,8 +15,9 @@ export class ReservationFormCalendar {
     }
 
     async selectDates(from, to) {
-        const buttonLink = this.page.getByRole("button", {name: from});
-        const buttonLink2 = this.page.getByRole("button", {name: to});
+        await this.bookingCardElement.scrollIntoViewIfNeeded();
+        const buttonLink = this.page.getByRole("button", {name: from}).last();
+        const buttonLink2 = this.page.getByRole("button", {name: to}).last();
         const parentRow = buttonLink.locator("../../..");
         const selectedDateElement = parentRow.locator(".rbc-event-content", {hasText: "Selected"})
         await buttonLink.hover();
