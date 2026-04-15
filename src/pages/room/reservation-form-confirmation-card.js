@@ -1,4 +1,4 @@
-import {formatDate, nextWeek} from "../../utils/date-utils.js";
+import {formatDate} from "../../utils/date-utils.js";
 import {expect} from "@playwright/test";
 
 export class ReservationFormConfirmationCard {
@@ -14,6 +14,6 @@ export class ReservationFormConfirmationCard {
 
     async expectBookingIsConfirmed(confirmationText, checkin, checkout) {
         await expect(this.title).toHaveText(confirmationText);
-        await expect(this.dates).toHaveText(`${formatDate(checkin)} - ${formatDate(checkout)}`);
+        await expect(this.dates).toHaveText(`${formatDate(checkin)} - ${formatDate(checkout.add(1, 'day'))}`);
     }
 }

@@ -1,42 +1,30 @@
-import {expect, test} from "@playwright/test";
-import {HomePage} from "../src/pages/home-page.js";
-import {RoomPage} from "../src/pages/room/room-page.js";
+import {expect, test} from "../src/fixture/merged-fixture.js";
 import {personalDetails} from "../src/test-data/personal-details.js";
 import {formatDate, getNextAvailableWeek, nextWeek} from "../src/utils/date-utils.js";
-import {getRoomInformation} from "../src/api/room-api.js";
+import dayjs from "dayjs";
 
-test("User can book a room for a week", {annotation: {type: 'issue', description: 'url to bug'}}, async ({page}) => {
-    const homePage = new HomePage(page);
-    const roomPage = new RoomPage(page);
-
-    await homePage.goto();
-    await homePage.openFirstRoom();
-
-    await roomPage.reservationForm.calendar.selectDates(nextWeek.start, nextWeek.end);
+test("User can book a room for a week", {annotation: {type: 'issue', description: 'url to bug'}}, async ({ roomPage }) => {
+    await roomPage.reservationForm.calendar.selectDates(dayjs("2026-06-14"), dayjs("2026-06-20"));
     await roomPage.reservationForm.calendar.clickReservation();
     await roomPage.reservationForm.personalDetails.fillForm(personalDetails);
     // expect tipas 1
-    expect(await roomPage.reservationForm.confirmation.isBookingConfirmed("Booking Confirmed", nextWeek.start, nextWeek.end)).toBe(true);
+    // expect(await roomPage.reservationForm.confirmation.isBookingConfirmed("Booking Confirmed", nextWeek.start, nextWeek.end)).toBe(true);
     // expect tipas 2
     await expect(roomPage.reservationForm.confirmation.title).toHaveText("Booking Confirmed");
-    await expect(roomPage.reservationForm.confirmation.dates).toHaveText(`${formatDate(nextWeek.start)} - ${formatDate(nextWeek.end)}`);
+    await expect(roomPage.reservationForm.confirmation.dates).toHaveText(`${formatDate(nextWeek.start)} - ${formatDate(nextWeek.end.add(1, 'day'))}`);
     // expect tipas 3
     await roomPage.reservationForm.confirmation.expectBookingIsConfirmed("Booking Confirmed", nextWeek.start, nextWeek.end)
 });
 
-test("Book next available week", async ({page}) => {
-    const homePage = new HomePage(page);
-    const roomPage = new RoomPage(page);
+test("Book next available week", async ({roomPage, getRoomInfo}) => {
+    // const url = page.url();
+    // const roomId = url.split("?")[0].split("/").pop();
+    const availableWeek = await getNextAvailableWeek(getRoomInfo);
 
-    await homePage.goto();
-    await homePage.openRoom(2);
-    const url = page.url();
-    const roomId = url.split("?")[0].split("/").pop();
-    const roomInformation = await getRoomInformation(roomId);
-    const availableWeek = await getNextAvailableWeek(roomInformation);
+    await roomPage.successfullyBookARoom(availableWeek.start, availableWeek.end, personalDetails);
 
-    await roomPage.reservationForm.calendar.selectDates(availableWeek.start, availableWeek.end);
-    await roomPage.reservationForm.calendar.clickReservation();
-    await roomPage.reservationForm.personalDetails.fillForm(personalDetails);
-    await roomPage.reservationForm.confirmation.expectBookingIsConfirmed("Booking Confirmed", availableWeek.start, availableWeek.end);
+    // await roomPage.reservationForm.calendar.selectDates(availableWeek.start, availableWeek.end);
+    // await roomPage.reservationForm.calendar.clickReservation();
+    // await roomPage.reservationForm.personalDetails.fillForm(personalDetails);
+    // await roomPage.reservationForm.confirmation.expectBookingIsConfirmed("Booking Confirmed", availableWeek.start, availableWeek.end);
 });

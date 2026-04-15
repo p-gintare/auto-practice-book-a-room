@@ -14,5 +14,11 @@ export class RoomPage extends BasicPage {
         }
     }
 
+    async successfullyBookARoom(checkin, checkout, personalDetails) {
+        await this.reservationForm.calendar.selectDates(checkin, checkout);
+        await this.reservationForm.personalDetails.fillForm(personalDetails);
+        await this.reservationForm.confirmation.expectBookingIsConfirmed(checkin, checkout);
+    }
+
 
 }

@@ -5,5 +5,5 @@ export const getRoomInformation = async (roomId) => {
         }
     });
     console.log(response.url);
-    return await response.json();
+    return (await response.json())?.report ?? [];
 }

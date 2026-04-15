@@ -33,3 +33,11 @@ console.log(a1 === a3); // false
 console.log(a1 === a2); // false
 console.log(a1.toString() === a2.toString()); // false svarbu eiles tvarka
 console.log(a1.sort().toString() === a2.sort().toString()); //true nesvarbu kokia eiles tvarka
+
+
+function tmp(start, end) {
+    return {
+        start, // start:start
+        end: end
+    }
+}
